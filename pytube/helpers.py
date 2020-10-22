@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
+
 """Various helper functions implemented by pytube."""
 import functools
 import logging
 import os
 import re
 import warnings
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import TypeVar
+from typing import TypeVar, Callable, Optional, Dict, List, Any
 from urllib import request
 
 from pytube.exceptions import RegexMatchError

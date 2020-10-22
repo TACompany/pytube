@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 This module contains a container for stream manifest data.
 
@@ -7,19 +8,14 @@ combined). This was referred to as ``Video`` in the legacy pytube version, but
 has been renamed to accommodate DASH (which serves the audio and video
 separately).
 """
+
 import logging
 import os
-from datetime import datetime
-from typing import BinaryIO
-from typing import Dict
-from typing import Optional
-from typing import Tuple
-from urllib.parse import parse_qs
+from typing import Dict, Tuple, Optional, BinaryIO
 
 from pytube import extract
 from pytube import request
-from pytube.helpers import safe_filename
-from pytube.helpers import target_directory
+from pytube.helpers import safe_filename, target_directory
 from pytube.itags import get_format_profile
 from pytube.monostate import Monostate
 
@@ -29,9 +25,7 @@ logger = logging.getLogger(__name__)
 class Stream:
     """Container for stream manifest data."""
 
-    def __init__(
-        self, stream: Dict, player_config_args: Dict, monostate: Monostate
-    ):
+    def __init__(self, stream: Dict, player_config_args: Dict, monostate: Monostate):
         """Construct a :class:`Stream <Stream>`.
 
         :param dict stream:
@@ -48,9 +42,7 @@ class Stream:
         self._monostate = monostate
 
         self.url = stream["url"]  # signed download url
-        self.itag = int(
-            stream["itag"]
-        )  # stream format id (youtube nomenclature)
+        self.itag = int(stream["itag"])  # stream format id (youtube nomenclature)
 
         # set type and codec info
 
@@ -74,12 +66,8 @@ class Stream:
         itag_profile = get_format_profile(self.itag)
         self.is_dash = itag_profile["is_dash"]
         self.abr = itag_profile["abr"]  # average bitrate (audio streams only)
-        self.fps = itag_profile[
-            "fps"
-        ]  # frames per second (video streams only)
-        self.resolution = itag_profile[
-            "resolution"
-        ]  # resolution (e.g.: "480p")
+        self.fps = itag_profile["fps"]  # frames per second (video streams only)
+        self.resolution = itag_profile["resolution"]  # resolution (e.g.: "480p")
         self.is_3d = itag_profile["is_3d"]
         self.is_hdr = itag_profile["is_hdr"]
         self.is_live = itag_profile["is_live"]
@@ -177,16 +165,9 @@ class Stream:
         """
         if self._monostate.duration and self.bitrate:
             bits_in_byte = 8
-            return int(
-                (self._monostate.duration * self.bitrate) / bits_in_byte
-            )
+            return int((self._monostate.duration * self.bitrate) / bits_in_byte)
 
         return self.filesize
-
-    @property
-    def expiration(self) -> datetime:
-        expire = parse_qs(self.url.split("?")[1])["expire"][0]
-        return datetime.utcfromtimestamp(int(expire))
 
     @property
     def default_filename(self) -> str:
@@ -232,9 +213,7 @@ class Stream:
 
         """
         file_path = self.get_file_path(
-            filename=filename,
-            output_path=output_path,
-            filename_prefix=filename_prefix,
+            filename=filename, output_path=output_path, filename_prefix=filename_prefix
         )
 
         if skip_existing and self.exists_at_path(file_path):
@@ -244,9 +223,7 @@ class Stream:
 
         bytes_remaining = self.filesize
         logger.debug(
-            "downloading (%s total bytes) file to %s",
-            self.filesize,
-            file_path,
+            "downloading (%s total bytes) file to %s", self.filesize, file_path,
         )
 
         with open(file_path, "wb") as fh:
@@ -273,10 +250,7 @@ class Stream:
         return os.path.join(target_directory(output_path), filename)
 
     def exists_at_path(self, file_path: str) -> bool:
-        return (
-            os.path.isfile(file_path)
-            and os.path.getsize(file_path) == self.filesize
-        )
+        return os.path.isfile(file_path) and os.path.getsize(file_path) == self.filesize
 
     def stream_to_buffer(self, buffer: BinaryIO) -> None:
         """Write the media stream to buffer
@@ -295,9 +269,7 @@ class Stream:
             self.on_progress(chunk, buffer, bytes_remaining)
         self.on_complete(None)
 
-    def on_progress(
-        self, chunk: bytes, file_handler: BinaryIO, bytes_remaining: int
-    ):
+    def on_progress(self, chunk: bytes, file_handler: BinaryIO, bytes_remaining: int):
         """On progress callback function.
 
         This function writes the binary data to the file, then checks if an

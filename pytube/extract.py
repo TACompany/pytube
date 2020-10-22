@@ -5,21 +5,12 @@ import logging
 import re
 from collections import OrderedDict
 from html.parser import HTMLParser
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
-from urllib.parse import parse_qs
-from urllib.parse import parse_qsl
-from urllib.parse import quote
-from urllib.parse import unquote
+from typing import Any, Optional, Tuple, List, Dict
+from urllib.parse import quote, parse_qs, unquote, parse_qsl
 from urllib.parse import urlencode
 
 from pytube.cipher import Cipher
-from pytube.exceptions import HTMLParseError
-from pytube.exceptions import LiveStreamError
-from pytube.exceptions import RegexMatchError
+from pytube.exceptions import RegexMatchError, HTMLParseError, LiveStreamError
 from pytube.helpers import regex_search
 
 logger = logging.getLogger(__name__)
@@ -132,9 +123,7 @@ def video_info_url_age_restricted(video_id: str, embed_html: str) -> str:
     # Here we use ``OrderedDict`` so that the output is consistent between
     # Python 2.7+.
     eurl = f"https://youtube.googleapis.com/v/{video_id}"
-    params = OrderedDict(
-        [("video_id", video_id), ("eurl", eurl), ("sts", sts),]
-    )
+    params = OrderedDict([("video_id", video_id), ("eurl", eurl), ("sts", sts),])
     return _video_info_url(params)
 
 
@@ -195,11 +184,12 @@ def get_ytplayer_config(html: str) -> Any:
     :returns:
         Substring of the html containing the encoded manifest data.
     """
-    config_patterns = [
-        r";ytplayer\.config\s*=\s*({.*?});",
+    config_patterns = [r";ytplayer\.config\s*=\s*({.*?});",
         r";ytplayer\.config\s*=\s*({.+?});ytplayer",
         r";yt\.setConfig\(\{'PLAYER_CONFIG':\s*({.*})}\);",
-        r";yt\.setConfig\(\{'PLAYER_CONFIG':\s*({.*})(,'EXPERIMENT_FLAGS'|;)",  # noqa: E501
+        r";yt\.setConfig\(\{'PLAYER_CONFIG':\s*({.*})(,'EXPERIMENT_FLAGS'|;)",
+        # noqa: E501
+        r"'PLAYER_CONFIG':\s*({.*})}\);",
     ]
     logger.debug("finding initial function name")
     for pattern in config_patterns:
@@ -210,9 +200,7 @@ def get_ytplayer_config(html: str) -> Any:
             yt_player_config = function_match.group(1)
             return json.loads(yt_player_config)
 
-    raise RegexMatchError(
-        caller="get_ytplayer_config", pattern="config_patterns"
-    )
+    raise RegexMatchError(caller="get_ytplayer_config", pattern="config_patterns")
 
 
 def _get_vid_descr(html: Optional[str]) -> str:
@@ -261,9 +249,7 @@ def apply_signature(config_args: Dict, fmt: str, js: str) -> None:
 
         signature = cipher.get_signature(ciphered_signature=stream["s"])
 
-        logger.debug(
-            "finished descrambling signature for itag=%s", stream["itag"]
-        )
+        logger.debug("finished descrambling signature for itag=%s", stream["itag"])
         # 403 forbidden fix
         stream_manifest[i]["url"] = url + "&sig=" + signature
 
@@ -293,9 +279,7 @@ def apply_descrambler(stream_data: Dict, key: str) -> None:
     if key == "url_encoded_fmt_stream_map" and not stream_data.get(
         "url_encoded_fmt_stream_map"
     ):
-        formats = json.loads(stream_data["player_response"])["streamingData"][
-            "formats"
-        ]
+        formats = json.loads(stream_data["player_response"])["streamingData"]["formats"]
         formats.extend(
             json.loads(stream_data["player_response"])["streamingData"][
                 "adaptiveFormats"
@@ -315,12 +299,7 @@ def apply_descrambler(stream_data: Dict, key: str) -> None:
             ]
         except KeyError:
             cipher_url = [
-                parse_qs(
-                    formats[i][
-                        "cipher" if "cipher" in data.keys() else "signatureCipher"
-                    ]
-                )
-                for i, data in enumerate(formats)
+                parse_qs(formats[i]["signatureCipher"]) for i, data in enumerate(formats)
             ]
             stream_data[key] = [
                 {
